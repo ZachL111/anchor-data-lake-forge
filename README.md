@@ -1,68 +1,40 @@
 # anchor-data-lake-forge
 
-`anchor-data-lake-forge` treats data engineering as a local verification problem. The C++ implementation is intentionally narrow, but the fixtures and notes make the behavior explicit.
+`anchor-data-lake-forge` is a compact C++ repository for data engineering, centered on this goal: Build a C++ toolkit that studies lake behavior through framed sample traffic, with bounds and ordering tests and bounded memory input sets.
 
-## Anchor Data Lake Forge Checkpoints
+## Reason For The Project
 
-Treat the compact fixture as the contract and the extended examples as a scratchpad. The code should stay boring enough that a change in behavior is obvious from the test output.
+The point is to make a small domain rule concrete enough that a reader can change it and immediately see what broke.
 
-## What This Is For
+## Anchor Data Lake Forge Review Notes
 
-The goal is to capture the core behavior in code and make the surrounding assumptions obvious. A reader should be able to run the verifier, open the fixtures, and understand why each decision was made.
+The first comparison I would make is `quality gap` against `schema drift` because it shows where the rule is most opinionated.
 
-## Project Layout
+## What It Does
 
-- `src`: primary implementation
-- `tests`: verification harness
-- `fixtures`: compact golden scenarios
-- `examples`: expanded scenario set
-- `metadata`: project constants and verification metadata
-- `docs`: operations and extension notes
-- `scripts`: local verification and audit commands
+- `fixtures/domain_review.csv` adds cases for schema drift and lineage depth.
+- `metadata/domain-review.json` records the same cases in structured form.
+- `config/review-profile.json` captures the read order and the two review questions.
+- `examples/anchor-data-lake-walkthrough.md` walks through the case spread.
+- The C++ code includes a review path for `quality gap` and `schema drift`.
+- `docs/field-notes.md` explains the strongest and weakest cases.
 
-## Useful Pieces
+## How It Is Put Together
 
-- Includes extended examples for pipeline state, including `surge` and `degraded`.
-- Documents quality gates tradeoffs in `docs/operations.md`.
-- Runs locally with a single verification command and no external credentials.
-- Stores project constants and verification metadata in `metadata/project.json`.
-- Adds a repository audit script that checks structure before running the language verifier.
+The repository has two validation layers: the original compact policy fixture and the domain review fixture. They are separate so one can change without hiding failures in the other.
 
-## Architecture Notes
+The C++ addition stays small enough to inspect in one sitting.
 
-The design is intentionally direct: parse or construct a signal, score it, classify it, and verify the expected branch. This makes the repository useful for studying data engineering behavior without needing a service or database unless the language project itself is SQL. The C++ project uses a small library boundary and a compiled assertion harness.
-
-## Tooling
-
-Clone the repository, enter the directory, and run the verifier. No database server, cloud account, or token is required.
-
-## Case Study
-
-`examples/extended_cases.csv` adds six named cases. I kept the names plain so failures are easy to read in a terminal: baseline, pressure, surge, degraded, recovery, and boundary.
-
-## Local Workflow
+## Run It
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-This runs the language-level build or test path against the compact fixture set.
+## Check It
 
-## Quality Gate
+The same command runs the local verification path. The highest-scoring domain case is `recovery` at 222, which lands in `ship`. The most cautious case is `baseline` at 141, which lands in `ship`.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/audit.ps1
-```
+## Boundaries
 
-The audit command checks repository structure and README constraints before it delegates to the verifier.
-
-## Expansion Ideas
-
-- Add a short report command that prints the score breakdown for a single scenario.
-- Add malformed input fixtures so the failure path is as visible as the happy path.
-- Split the scoring constants into a typed configuration object and validate it before use.
-- Add one more data engineering fixture that focuses on a malformed or borderline input.
-
-## Scope
-
-The examples cover useful edges, not every edge. A larger version would add malformed-input tests, richer reports, and deeper domain parsers.
+The fixture set is small enough to audit by hand. The next useful expansion is malformed input coverage, not extra surface area.
